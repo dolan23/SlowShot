@@ -37,7 +37,13 @@ namespace Deli.ProgressiveFocus
 
 		private static void ChangeTimeScale(float scale)
 		{
-			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.1f, 0.95f);
+			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.4f, 1.0f);
+			UnityEngine.Time.fixedDeltaTime = UnityEngine.Time.timeScale / SteamVR.instance.hmd_DisplayFrequency;
+		}
+
+		private static void ChangeTimeScaleExtreme(float scale)
+		{
+			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.05f, 1.0f);
 			UnityEngine.Time.fixedDeltaTime = UnityEngine.Time.timeScale / SteamVR.instance.hmd_DisplayFrequency;
 		}
 
@@ -55,18 +61,17 @@ namespace Deli.ProgressiveFocus
 			var thisTriggerTravel = __instance.Input.TriggerFloat;
 			var otherTriggerTravel = __instance.OtherHand.Input.TriggerFloat;
 			
-			var triggerTravel = Math.Max(thisTriggerTravel, otherTriggerTravel);
+			var triggerTravelMax = Math.Max(thisTriggerTravel, otherTriggerTravel);
+			var triggerTravelMin = Math.Min(thisTriggerTravel, otherTriggerTravel);
 
-			if (triggerTravel > 0.3f)
-			{
+			if (triggerTravelMax > 0.98 && triggerTravelMin > 0.2) { 
+				ChangeTimeScaleExtreme(1.0f - triggerTravelMin);
+			}else if(triggerTravelMax > 0.2f) {
 				ChangeTimeScale(Time.timeScale - 0.1f*Time.deltaTime);
-			}else if (triggerTravel > 0.7f)
-			{
-				ChangeTimeScale(Time.timeScale - 0.2f*Time.deltaTime);
 			}
 			else {
 				if(Time.timeScale != 1f) { 
-					ChangeTimeScale(Time.timeScale + 0.3f*Time.deltaTime);
+					ChangeTimeScale(Time.timeScale + 0.6f*Time.deltaTime);
 				}
 			}
 			
