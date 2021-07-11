@@ -1,16 +1,15 @@
 {
-  "name": "Deli Example Mod",
+  "name": "ProgressiveFocus",
   "authors": [
-    "Nathan Gill",
-    "AshHat"
+    "DolanSpuck"
   ],
-  "guid": "deli.example_mod",
+  "guid": "deli.progressivefocus",
   "version": "1.0.0",
   "require": "0.3.0",
   "dependencies": {},
   "assets": {
     "setup": {
-      "Deli.ExampleMod.dll": "deli:assembly"
+      "ProgressiveFocus.dll": "deli:assembly"
     }
   }
 }
