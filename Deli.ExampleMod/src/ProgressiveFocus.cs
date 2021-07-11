@@ -43,7 +43,7 @@ namespace Deli.ProgressiveFocus
 
 		private static void ChangeTimeScaleExtreme(float scale)
 		{
-			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.05f, 1.0f);
+			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.15f, 1.0f);
 			UnityEngine.Time.fixedDeltaTime = UnityEngine.Time.timeScale / SteamVR.instance.hmd_DisplayFrequency;
 		}
 
@@ -65,13 +65,13 @@ namespace Deli.ProgressiveFocus
 			var triggerTravelMin = Math.Min(thisTriggerTravel, otherTriggerTravel);
 
 			if (triggerTravelMax > 0.98 && triggerTravelMin > 0.2) { 
-				ChangeTimeScaleExtreme(1.0f - triggerTravelMin);
+				ChangeTimeScaleExtreme(Time.timeScale - 0.2f*Time.deltaTime);
 			}else if(triggerTravelMax > 0.2f) {
-				ChangeTimeScale(Time.timeScale - 0.1f*Time.deltaTime);
+				//ChangeTimeScale(Time.timeScale - 0.1f*Time.deltaTime);
 			}
 			else {
 				if(Time.timeScale != 1f) { 
-					ChangeTimeScale(Time.timeScale + 0.6f*Time.deltaTime);
+					ChangeTimeScale(Time.timeScale + 0.5f*Time.deltaTime);
 				}
 			}
 			
