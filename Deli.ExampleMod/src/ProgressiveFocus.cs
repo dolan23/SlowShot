@@ -43,7 +43,7 @@ namespace Deli.ProgressiveFocus
 
 		private static void ChangeTimeScaleExtreme(float scale)
 		{
-			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.15f, 1.0f);
+			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.25f, 1.0f);
 			UnityEngine.Time.fixedDeltaTime = UnityEngine.Time.timeScale / SteamVR.instance.hmd_DisplayFrequency;
 		}
 
@@ -51,7 +51,7 @@ namespace Deli.ProgressiveFocus
 		[HarmonyPrefix]
 		public static void FixPitch(ref float value)
 		{
-			value *= Time.timeScale;
+			value *= Mathf.Clamp(Time.timeScale, 0.5f, 1.0f);
 		}
 
 		[HarmonyPatch(typeof(FVRViveHand), "Update")]
@@ -64,9 +64,10 @@ namespace Deli.ProgressiveFocus
 			var triggerTravelMax = Math.Max(thisTriggerTravel, otherTriggerTravel);
 			var triggerTravelMin = Math.Min(thisTriggerTravel, otherTriggerTravel);
 
-			if (triggerTravelMax > 0.98 && triggerTravelMin > 0.2) { 
-				ChangeTimeScaleExtreme(Time.timeScale - 0.2f*Time.deltaTime);
-			}else if(triggerTravelMax > 0.2f) {
+			if (triggerTravelMax > 0.98 && triggerTravelMin > 0.1) {
+				ChangeTimeScaleExtreme(1.0f - triggerTravelMin);
+			}
+			else if(triggerTravelMax > 0.2f) {
 				//ChangeTimeScale(Time.timeScale - 0.1f*Time.deltaTime);
 			}
 			else {
