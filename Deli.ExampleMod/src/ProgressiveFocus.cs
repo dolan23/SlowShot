@@ -20,38 +20,25 @@ namespace Deli.ProgressiveFocus
 		public ProgressiveFocus()
 		{
 			UnityEngine.Debug.Log("Loading ProgressiveFocus");
-			//SceneManager.sceneLoaded += SceneLoaded;
+			SceneManager.sceneLoaded += SceneLoaded;
 		}
 
 		public void Awake() {
 			Logger.LogInfo("ProgressiveFocus started!");
 
 			timeScale = Config.Bind("General", "TimeScale", 0.5f, "Time");
-
 			Harmony.CreateAndPatchAll(typeof(ProgressiveFocus));
-			//ChangeTimeScale(0.1f);
 		}
 
 		private void SceneLoaded(Scene scene, LoadSceneMode mode) {
 			UnityEngine.Debug.Log("Scene Loaded");
-			//ChangeTimeScale(0.1f);
+			Harmony.CreateAndPatchAll(typeof(ProgressiveFocus));
 		}
 
-	
-		public void Update()
+		private static void ChangeTimeScale(float scale)
 		{
-			//UnityEngine.Debug.Log("FrameUpdate");
-			//ChangeTimeScale(0.1f);
-
-		}
-
-		private static void ChangeTimeScale(float time)
-		{
-			UnityEngine.Time.timeScale = time;
-			UnityEngine.Time.timeScale = Mathf.Clamp(Time.timeScale, 0f, 1f);
+			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.1f, 0.95f);
 			UnityEngine.Time.fixedDeltaTime = UnityEngine.Time.timeScale / SteamVR.instance.hmd_DisplayFrequency;
-			UnityEngine.Debug.Log("Changed Time:" + Convert.ToString(UnityEngine.Time.timeScale));
-
 		}
 
 		[HarmonyPatch(typeof(AudioSource), "pitch", MethodType.Setter)]
@@ -61,29 +48,28 @@ namespace Deli.ProgressiveFocus
 			value *= Time.timeScale;
 		}
 
-		[HarmonyPatch(typeof(FVRViveHand), nameof(FVRViveHand.Update))]
+		[HarmonyPatch(typeof(FVRViveHand), "Update")]
 		[HarmonyPrefix]
 		public static void HandUpdate(FVRViveHand __instance)
-		{
-			var triggerTravel = __instance.Input.TriggerFloat;
+		{				
+			var thisTriggerTravel = __instance.Input.TriggerFloat;
+			var otherTriggerTravel = __instance.OtherHand.Input.TriggerFloat;
+			
+			var triggerTravel = Math.Max(thisTriggerTravel, otherTriggerTravel);
 
-			if (triggerTravel > 0.5f && triggerTravel < 0.7f)
+			if (triggerTravel > 0.3f)
 			{
-				UnityEngine.Debug.Log("TriggerDown");
-				ChangeTimeScale(0.7f);
-			}
-			if (triggerTravel > 0.7f && triggerTravel < 0.9f)
+				ChangeTimeScale(Time.timeScale - 0.1f*Time.deltaTime);
+			}else if (triggerTravel > 0.7f)
 			{
-				ChangeTimeScale(0.5f);
-			}
-			if (triggerTravel > 0.9f)
-			{
-				ChangeTimeScale(0.1f);
+				ChangeTimeScale(Time.timeScale - 0.2f*Time.deltaTime);
 			}
 			else {
-				ChangeTimeScale(1f);
+				if(Time.timeScale != 1f) { 
+					ChangeTimeScale(Time.timeScale + 0.3f*Time.deltaTime);
+				}
 			}
-
+			
 		}
 	}
 }
