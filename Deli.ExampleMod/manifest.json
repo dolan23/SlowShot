@@ -6,7 +6,8 @@
   "guid": "deli.progressivefocus",
   "version": "1.0.0",
   "require": "0.3.0",
-  "dependencies": {},
+  "dependencies": {
+  },
   "assets": {
     "setup": {
       "ProgressiveFocus.dll": "deli:assembly"
