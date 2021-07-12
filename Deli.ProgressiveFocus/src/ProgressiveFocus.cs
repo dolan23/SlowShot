@@ -13,7 +13,6 @@ namespace Deli.ProgressiveFocus
 {
 	public class ProgressiveFocus : DeliBehaviour
 	{
-		private static ConfigEntry<float> timeScale;
 		public SteamVR_Input_Sources inputSource = SteamVR_Input_Sources.Any;
 
 
@@ -24,8 +23,6 @@ namespace Deli.ProgressiveFocus
 
 		public void Awake() {
 			Logger.LogInfo("ProgressiveFocus started!");
-
-			timeScale = Config.Bind("General", "TimeScale", 0.5f, "Time");
 			Harmony.CreateAndPatchAll(typeof(ProgressiveFocus));
 		}
 
@@ -37,6 +34,7 @@ namespace Deli.ProgressiveFocus
 
 		private static void ChangeTimeScaleExtreme(float scale)
 		{
+			scale *= 0.25f;
 			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.05f, 1.0f);
 			UnityEngine.Time.fixedDeltaTime = UnityEngine.Time.timeScale / SteamVR.instance.hmd_DisplayFrequency;
 		}
@@ -57,25 +55,60 @@ namespace Deli.ProgressiveFocus
 		[HarmonyPatch(typeof(FVRViveHand), "Update")]
 		[HarmonyPrefix]
 		public static void HandUpdate(FVRViveHand __instance)
-		{				
+		{
 			var thisTriggerTravel = __instance.Input.TriggerFloat;
 			var otherTriggerTravel = __instance.OtherHand.Input.TriggerFloat;
 
-			var triggerTravelMax = Math.Max(thisTriggerTravel, otherTriggerTravel);
-			var triggerTravelMin = Math.Min(thisTriggerTravel, otherTriggerTravel);
+			var thisGun = __instance.CurrentInteractable;
+			var otherGun = __instance.OtherHand.CurrentInteractable;
+			int thisGunID = 0;
+			int otherGunID = 1;
+			var sameGunNoAkimboFlag = false;
 
-			if (triggerTravelMax > 0.98 && triggerTravelMin > 0.2) {
-				ChangeTimeScaleExtreme(1.0f - triggerTravelMin);
+			if (thisGun != null) {
+				thisGunID = thisGun.GetInstanceID();
 			}
-			//else if(triggerTravelMax > 0.2f) {
+
+			if (otherGun != null) {
+				otherGunID = otherGun.GetInstanceID();
+			}
+			//
+			//(!(thisHasGun is FVRFireArm && otherTriggerGun is FVRFireArm) && thisHasGun.GetInstanceID() != otherTriggerGun.GetInstanceID());
+
+
+			if	(
+					(
+						(thisGun is FVRFireArm || otherGun is FVRFireArm)
+						&&
+						!(thisGun is FVRFireArm && otherGun is FVRFireArm)
+					) 
+				|| 
+					(
+						(thisGun is FVRFireArm && otherGun is FVRFireArm) 
+						&&
+						thisGunID == otherGunID 
+					) 
+				)
+			{
+
+				var triggerTravelMax = Math.Max(thisTriggerTravel, otherTriggerTravel);
+				var triggerTravelMin = Math.Min(thisTriggerTravel, otherTriggerTravel);
+
+				if (triggerTravelMax > 0.98 && triggerTravelMin > 0.2)
+				{
+					ChangeTimeScaleExtreme(1.0f - triggerTravelMin);
+				}
+				//else if(triggerTravelMax > 0.2f) {
 				//ChangeTimeScale(Time.timeScale - 0.1f*Time.deltaTime);
-			//}
-			else {
-				if(Time.timeScale != 1f) { 
-					ChangeTimeScale(Time.timeScale + 0.5f*Time.deltaTime);
+				//}
+				else
+				{
+					if (Time.timeScale != 1f)
+					{
+						ChangeTimeScale(Time.timeScale + 0.5f * Time.deltaTime);
+					}
 				}
 			}
-			
 		}
 	}
 }
