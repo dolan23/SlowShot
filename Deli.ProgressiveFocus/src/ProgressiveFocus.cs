@@ -13,7 +13,6 @@ namespace Deli.ProgressiveFocus
 {
 	public class ProgressiveFocus : DeliBehaviour
 	{
-		private static ConfigEntry<float> timeScale;
 		public SteamVR_Input_Sources inputSource = SteamVR_Input_Sources.Any;
 
 
@@ -24,8 +23,6 @@ namespace Deli.ProgressiveFocus
 
 		public void Awake() {
 			Logger.LogInfo("ProgressiveFocus started!");
-
-			timeScale = Config.Bind("General", "TimeScale", 0.5f, "Time");
 			Harmony.CreateAndPatchAll(typeof(ProgressiveFocus));
 		}
 
@@ -37,6 +34,7 @@ namespace Deli.ProgressiveFocus
 
 		private static void ChangeTimeScaleExtreme(float scale)
 		{
+			scale *= 0.25f;
 			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.05f, 1.0f);
 			UnityEngine.Time.fixedDeltaTime = UnityEngine.Time.timeScale / SteamVR.instance.hmd_DisplayFrequency;
 		}
