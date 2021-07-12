@@ -20,18 +20,12 @@ namespace Deli.ProgressiveFocus
 		public ProgressiveFocus()
 		{
 			UnityEngine.Debug.Log("Loading ProgressiveFocus");
-			SceneManager.sceneLoaded += SceneLoaded;
 		}
 
 		public void Awake() {
 			Logger.LogInfo("ProgressiveFocus started!");
 
 			timeScale = Config.Bind("General", "TimeScale", 0.5f, "Time");
-			Harmony.CreateAndPatchAll(typeof(ProgressiveFocus));
-		}
-
-		private void SceneLoaded(Scene scene, LoadSceneMode mode) {
-			UnityEngine.Debug.Log("Scene Loaded");
 			Harmony.CreateAndPatchAll(typeof(ProgressiveFocus));
 		}
 
@@ -43,7 +37,7 @@ namespace Deli.ProgressiveFocus
 
 		private static void ChangeTimeScaleExtreme(float scale)
 		{
-			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.25f, 1.0f);
+			UnityEngine.Time.timeScale = Mathf.Clamp(scale, 0.05f, 1.0f);
 			UnityEngine.Time.fixedDeltaTime = UnityEngine.Time.timeScale / SteamVR.instance.hmd_DisplayFrequency;
 		}
 
@@ -51,7 +45,13 @@ namespace Deli.ProgressiveFocus
 		[HarmonyPrefix]
 		public static void FixPitch(ref float value)
 		{
-			value *= Mathf.Clamp(Time.timeScale, 0.5f, 1.0f);
+			if (Time.timeScale < 0.5f)
+			{
+				value *= 0.5f;
+			}
+			else { 
+				value *= 1.0f;
+			}
 		}
 
 		[HarmonyPatch(typeof(FVRViveHand), "Update")]
@@ -60,16 +60,16 @@ namespace Deli.ProgressiveFocus
 		{				
 			var thisTriggerTravel = __instance.Input.TriggerFloat;
 			var otherTriggerTravel = __instance.OtherHand.Input.TriggerFloat;
-			
+
 			var triggerTravelMax = Math.Max(thisTriggerTravel, otherTriggerTravel);
 			var triggerTravelMin = Math.Min(thisTriggerTravel, otherTriggerTravel);
 
-			if (triggerTravelMax > 0.98 && triggerTravelMin > 0.1) {
+			if (triggerTravelMax > 0.98 && triggerTravelMin > 0.2) {
 				ChangeTimeScaleExtreme(1.0f - triggerTravelMin);
 			}
-			else if(triggerTravelMax > 0.2f) {
+			//else if(triggerTravelMax > 0.2f) {
 				//ChangeTimeScale(Time.timeScale - 0.1f*Time.deltaTime);
-			}
+			//}
 			else {
 				if(Time.timeScale != 1f) { 
 					ChangeTimeScale(Time.timeScale + 0.5f*Time.deltaTime);
